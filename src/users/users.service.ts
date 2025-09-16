@@ -6,5 +6,9 @@ import { Repository } from 'typeorm';
 @Injectable()
 export class UsersService {
     constructor(@InjectRepository(User) private readonly repo: Repository<User>) {}
-    
+
+    private UserWithoutPassword(user: User) {
+        const {password, ...userWithoutPassword} = user;
+        return userWithoutPassword;
+    }
 }
