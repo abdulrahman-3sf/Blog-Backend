@@ -15,7 +15,7 @@ config();
   imports: [UsersModule, PassportModule, JwtModule.registerAsync({
     useFactory: async (configService: ConfigService) => ({
       secret: configService.get<string>('JWT_SECRET'),
-      signOptions: { expiresIn: '15m' },
+      signOptions: { expiresIn: configService.get<string>("JWT_TOKEN_EXPIRE_TIME") },
     }), inject: [ConfigService],
   })],
   providers: [AuthService, LocalStrategy, JwtStrategy],

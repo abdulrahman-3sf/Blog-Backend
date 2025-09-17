@@ -5,7 +5,6 @@ import { config } from "dotenv";
 import { ExtractJwt, Strategy } from "passport-jwt";
 
 config();
-// const configService = new ConfigService();
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
