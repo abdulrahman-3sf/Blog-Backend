@@ -15,4 +15,9 @@ export class UsersController {
     getUserByID(@Param('id') id: string) {
         return this.usersRepo.findById(id);
     }
+
+    // @Get("username/:username")
+    // getUserByUsername(@Param('username') username: string) {
+    //     return this.usersRepo.findUser("", username);
+    // }
 }

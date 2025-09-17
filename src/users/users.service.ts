@@ -9,12 +9,20 @@ import * as bcrypt from 'bcrypt';
 export class UsersService {
     constructor(@InjectRepository(User) private readonly repo: Repository<User>) {}
 
+    async hashPassword(password: string): Promise<string> {
+        const salt = await bcrypt.genSalt(10);
+        return bcrypt.hash(password, salt);
+    }
+
+    async checkPassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
+        return bcrypt.compare(plainPassword, hashedPassword);
+    }
+
     private UserWithoutPassword(user: User) {
         const {password, ...userWithoutPassword} = user;
         return userWithoutPassword;
     }
 
-    // TODO: Test find by email only and username
     async create(dto: CreateUserDto) { 
         const userExists = await this.repo.findOne({
             where: [
@@ -27,9 +35,9 @@ export class UsersService {
             throw new ConflictException('Username/Email already in use');
         }
 
-        const passwordHash = await bcrypt.hash(dto.password, 10);
+        const passwordHash = await this.hashPassword(dto.password);
         const user = await this.repo.create({email: dto.email, username: dto.username, password: passwordHash});
-        const savedUser = await this.repo.save(user);
+        const savedUser = await this.repo.save(user);   
 
         return this.UserWithoutPassword(savedUser);
     }
@@ -42,5 +50,21 @@ export class UsersService {
         }
 
         return this.UserWithoutPassword(user);
+    }
+
+    async findUser(id: string, username?: string, email?: string) {
+        const user = await this.repo.findOne({
+            where:[
+                // {id: id},
+                {username: username},
+                {email: email}
+            ]
+        });
+
+        if (!user) {
+            throw new NotFoundException('User not found!');
+        }
+
+        return user;
     }
 }
