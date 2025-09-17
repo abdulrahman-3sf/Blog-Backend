@@ -13,16 +13,16 @@ export class AuthService {
         const user = await this.usersSerivce.findByUsername(username);
 
         if (user && await this.usersSerivce.checkPassword(password, user.password)) {
-            const {password, ...userWithoutPassword} = user;
-            return userWithoutPassword;
+            const {password, ...publicUser} = user;
+            return publicUser;
         }
 
         return null;
     }
 
     async login(user) {
-        const payload = {username: user.username, sub: user.id}
+        const payload = {sub: user.id, username: user.username, role: user.role}
 
-        return { access_token: this.jwtService.sign(payload) };
+        return { access_token: await this.jwtService.signAsync(payload) };
     }
 }

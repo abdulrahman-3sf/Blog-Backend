@@ -1,7 +1,6 @@
 import { Body, Controller, Get, Param, Post, Request, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('users')
 export class UsersController {
@@ -16,11 +15,4 @@ export class UsersController {
     getUserByID(@Param('id') id: string) {
         return this.usersRepo.findById(id);
     }
-
-    @UseGuards(JwtAuthGuard)
-    @Get('me/protected')
-    getHello(@Request() req) {
-        return req.user;
-    }
-    
 }

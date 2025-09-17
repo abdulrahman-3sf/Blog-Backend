@@ -18,16 +18,16 @@ export class UsersService {
         return bcrypt.compare(plainPassword, hashedPassword);
     }
 
-    private UserWithoutPassword(user: User) {
-        const {password, ...userWithoutPassword} = user;
-        return userWithoutPassword;
+    private publicUser(user: User) {
+        const {password, ...rest} = user;
+        return rest;
     }
 
     async create(dto: CreateUserDto) { 
         const userExists = await this.repo.findOne({
             where: [
-                {email: dto.email},
-                {username: dto.username}
+                {email: dto.email.toLowerCase().trim()},
+                {username: dto.username.toLowerCase().trim()}
             ]
         });
 
@@ -36,10 +36,10 @@ export class UsersService {
         }
 
         const passwordHash = await this.hashPassword(dto.password);
-        const user = await this.repo.create({email: dto.email, username: dto.username, password: passwordHash});
+        const user = await this.repo.create({email: dto.email.toLowerCase().trim(), username: dto.username.toLowerCase().trim(), password: passwordHash});
         const savedUser = await this.repo.save(user);   
 
-        return this.UserWithoutPassword(savedUser);
+        return this.publicUser(savedUser);
     }
 
     async findById(id: string) {
@@ -49,10 +49,9 @@ export class UsersService {
             throw new NotFoundException('User not found!');
         }
 
-        return this.UserWithoutPassword(user);
+        return this.publicUser(user);
     }
 
-    // TODO: solve the id problem
     async findByUsername(username:string) {
         return this.repo.findOne({ where: { username: username.toLowerCase().trim() } })
     }
