@@ -53,19 +53,11 @@ export class UsersService {
     }
 
     // TODO: solve the id problem
-    async findUser(id: string, username?: string, email?: string) {
-        const user = await this.repo.findOne({
-            where:[
-                // {id: id},
-                {username: username},
-                {email: email}
-            ]
-        });
+    async findByUsername(username:string) {
+        return this.repo.findOne({ where: { username: username.toLowerCase().trim() } })
+    }
 
-        if (!user) {
-            throw new NotFoundException('User not found!');
-        }
-
-        return user;
+    async findByEmail(email:string) {
+        return this.repo.findOne({ where: { email: email.toLowerCase().trim() } })
     }
 }
