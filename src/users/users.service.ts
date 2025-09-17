@@ -52,6 +52,7 @@ export class UsersService {
         return this.UserWithoutPassword(user);
     }
 
+    // TODO: solve the id problem
     async findUser(id: string, username?: string, email?: string) {
         const user = await this.repo.findOne({
             where:[
