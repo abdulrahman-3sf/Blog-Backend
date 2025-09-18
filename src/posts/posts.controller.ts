@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Patch, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Request, UseGuards } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { PostsService } from './posts.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -24,5 +24,10 @@ export class PostsController {
         @Request() req
     ) {
         return await this.postsRepo.update(postId, updatePostDto, req.user);
+    }
+
+    @Get(':slug')
+    findBySlug(@Param('slug') slug: string) {
+        return this.postsRepo.findBySlug(slug.toLowerCase().trim());
     }
 }

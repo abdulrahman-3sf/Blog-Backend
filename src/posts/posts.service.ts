@@ -99,4 +99,14 @@ export class PostsService {
 
         return this.postsRepository.save(post);
     }
+
+    async findBySlug(slug: string) {
+        const post = await this.postsRepository.findOne({ where: { slug: slug, published: true } });
+
+        if (!post) {
+            throw new NotFoundException('Post not found');
+        }
+
+        return post;
+    }
 }
