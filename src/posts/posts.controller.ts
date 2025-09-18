@@ -9,7 +9,7 @@ export class PostsController {
     constructor(private readonly postsRepo: PostsService) {}
 
     @UseGuards(JwtAuthGuard)
-    @Post('create/')
+    @Post()
     async create(
         @Request() req,
         @Body() createPostDto: CreatePostDto) {
