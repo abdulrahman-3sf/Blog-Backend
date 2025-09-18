@@ -1,5 +1,5 @@
 import { Transform } from "class-transformer";
-import { IsNotEmpty, IsOptional, IsString, MaxLength } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsOptional, IsString, MaxLength } from "class-validator";
 
 export class UpdatePostDto {
     @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
@@ -14,7 +14,8 @@ export class UpdatePostDto {
     @IsString()
     body?: string;
 
+    @Transform(({ value }) => value === 'true' ? true : value === 'false' ? false : value)
     @IsOptional()
-    @IsString()
+    @IsBoolean()
     published?: boolean;
 }
