@@ -37,7 +37,7 @@ export class PostsService {
         return await this.generateUniqueSlug(base);
     }
 
-    private isAuthorized(authorId: string, actor: Actor) {
+    private isAuthorized(authorId: string, actor: Actor): boolean {
         let authorized = authorId === actor.id || actor.role === 'ADMIN';
 
         if (!authorized) {
@@ -47,7 +47,7 @@ export class PostsService {
         return true;
     }
 
-    private normalizePagination(page: number = 1, limit: number = 10) {
+    private normalizePagination(page: number = 1, limit: number = 10): {pageSafe: number, limitSafe: number} {
         const pageSafe = Math.max(1, page);
         const limitSafe = Math.min(100, Math.max(1, limit));
 
@@ -107,7 +107,7 @@ export class PostsService {
         return this.postsRepository.save(post);
     }
 
-    async findBySlug(slug: string) {
+    async findBySlug(slug: string): Promise<Post> {
         const post = await this.postsRepository.findOne({ where: { slug: slug, published: true } });
 
         if (!post) {
