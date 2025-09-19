@@ -1,3 +1,4 @@
+import { Comment } from "src/comments/entities/comment.entity";
 import { Post } from "src/posts/entities/post.entity";
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
@@ -23,12 +24,15 @@ export class User {
     @Column({type: 'enum', enum: UserRole, default: UserRole.USER})
     role: UserRole;
 
+    @OneToMany(() => Post, post => post.author)
+    posts: Post[];
+
+    @OneToMany(() => Comment, comment => comment.author)
+    comments: Comment[];
+
     @CreateDateColumn({ name: 'created_at' })
     createAt: Date;
 
     @UpdateDateColumn({ name: 'updated_at' })
     updateAt: Date;
-
-    @OneToMany(() => Post, (post) => post.author)
-    posts: Post[];
 }
