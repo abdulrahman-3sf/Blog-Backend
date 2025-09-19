@@ -31,8 +31,8 @@ export class User {
     comments: Comment[];
 
     @CreateDateColumn({ name: 'created_at' })
-    createAt: Date;
+    createdAt: Date;
 
     @UpdateDateColumn({ name: 'updated_at' })
-    updateAt: Date;
+    updatedAt: Date;
 }

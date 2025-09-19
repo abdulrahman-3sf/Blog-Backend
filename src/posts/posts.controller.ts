@@ -32,8 +32,8 @@ export class PostsController {
     }
 
     @Get()
-    list(@Query('page') page?: number, @Query('limit') limit?: number) {
-        return this.postsRepo.findPublic(page, limit);
+    list(@Query('page') page?: string, @Query('limit') limit?: string) {
+        return this.postsRepo.findPublic(Number(page), Number(limit));
     }
 
     @UseGuards(JwtAuthGuard)

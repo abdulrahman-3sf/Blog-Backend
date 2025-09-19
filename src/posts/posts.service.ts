@@ -47,7 +47,7 @@ export class PostsService {
         return true;
     }
 
-    private normalizePagination(page: number = 1, limit: number = 10): {pageSafe: number, limitSafe: number} {
+    normalizePagination(page: number = 1, limit: number = 10): {pageSafe: number, limitSafe: number} {
         const pageSafe = Math.max(1, page);
         const limitSafe = Math.min(100, Math.max(1, limit));
 
@@ -125,7 +125,7 @@ export class PostsService {
         
         const [items, total] = await this.postsRepository.findAndCount({
             where : {published: true},
-            order: {createAt: 'DESC'},
+            order: {createdAt: 'DESC'},
             take: limitSafe,
             skip: (pageSafe - 1) * limitSafe
         });
