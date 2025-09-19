@@ -135,4 +135,18 @@ export class PostsService {
             meta: {page: pageSafe, limit: limitSafe, total}
         };
     }
+
+    async delete(postId: string, actor: Actor): Promise<void> {
+        const post = await this.postsRepository.findOne({ where: { id: postId }});
+
+        if (!post) {
+            throw new NotFoundException('Post not found');
+        }
+
+        if (!this.isAuthorized(post.authorId, actor)) {
+            throw new ForbiddenException('Not allowed');
+        }
+
+        await this.postsRepository.remove(post);
+    }
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, Request, UseGuards } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { PostsService } from './posts.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -34,5 +34,12 @@ export class PostsController {
     @Get()
     list(@Query('page') page?: number, @Query('limit') limit?: number) {
         return this.postsRepo.findPublic(page, limit);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Delete(':postId')
+    @HttpCode(204)
+    async remove(@Param('postId') postId: string, @Request() req) {
+        return this.postsRepo.delete(postId, req.user);
     }
 }
