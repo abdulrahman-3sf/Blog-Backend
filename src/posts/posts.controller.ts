@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, Request, UseGuards } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { PostsService } from './posts.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -29,5 +29,10 @@ export class PostsController {
     @Get(':slug')
     findBySlug(@Param('slug') slug: string) {
         return this.postsRepo.findBySlug(slug.toLowerCase().trim());
+    }
+
+    @Get()
+    list(@Query('page') page?: number, @Query('limit') limit?: number) {
+        return this.postsRepo.findPublic(page, limit);
     }
 }

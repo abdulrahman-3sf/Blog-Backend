@@ -47,6 +47,13 @@ export class PostsService {
         return true;
     }
 
+    private normalizePagination(page: number = 1, limit: number = 10) {
+        const pageSafe = Math.max(1, page);
+        const limitSafe = Math.min(100, Math.max(1, limit));
+
+        return {pageSafe, limitSafe};
+    }
+
     // -----------------------------------------------------------------------------------------
 
     async create(authorId: string, createPostDto: CreatePostDto): Promise<Post> {
@@ -108,5 +115,24 @@ export class PostsService {
         }
 
         return post;
+    }
+
+    async findPublic(page: number = 1, limit: number = 10): Promise<{
+        items: Post[];
+        meta: {page: number, limit: number, total: number};
+    }> {
+        const { pageSafe, limitSafe } = this.normalizePagination(page, limit);
+        
+        const [items, total] = await this.postsRepository.findAndCount({
+            where : {published: true},
+            order: {createAt: 'DESC'},
+            take: limitSafe,
+            skip: (pageSafe - 1) * limitSafe
+        });
+
+        return {
+            items,
+            meta: {page: pageSafe, limit: limitSafe, total}
+        };
     }
 }
