@@ -47,7 +47,7 @@ export class PostsService {
         return true;
     }
 
-    normalizePagination(page: number = 1, limit: number = 10): {pageSafe: number, limitSafe: number} {
+    private normalizePagination(page: number = 1, limit: number = 10): {pageSafe: number, limitSafe: number} {
         const pageSafe = Math.max(1, page);
         const limitSafe = Math.min(100, Math.max(1, limit));
 

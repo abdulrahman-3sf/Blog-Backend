@@ -1,10 +1,22 @@
-import { Body, Controller, Get, Param, Post, Query, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Query, Request, UseGuards } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CreateCommentDto } from './dto/create-comment.dto';
 
-@Controller('posts')
+@Controller('comments')
 export class CommentsController {
+    constructor(private readonly commentsRepository: CommentsService) {}
+
+    @UseGuards(JwtAuthGuard)
+    @Delete(':commentId')
+    @HttpCode(204)
+    async remove(@Param('commentId') commentId: string, @Request() req) {
+        return this.commentsRepository.delete(commentId, {id: req.user.id, role: req.user.role});
+    }
+}
+
+@Controller('posts')
+export class PostCommentsController {
     constructor(private readonly commentsRepository: CommentsService) {}
 
     @UseGuards(JwtAuthGuard)
