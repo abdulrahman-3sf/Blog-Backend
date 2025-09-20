@@ -1,0 +1,36 @@
+import { User } from "src/users/entities/user.entity";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+
+@Entity({name: 'refresh_tokens'})
+export class RefreshToken {
+    @PrimaryGeneratedColumn('uuid')
+    id: string; // jti
+
+    @Column('uuid', {name: 'user_id'})
+    userId: string;
+
+    @ManyToOne(() => User, user => user.refreshTokens, {onDelete: 'CASCADE'})
+    @JoinColumn({name: 'user_id'})
+    user: User;
+
+    @Column({name: 'hashed_token', type: 'varchar', length: 255, unique: true})
+    hashedToken: string;
+
+    @Column({type: 'timestamptz', name: 'expires_at'})
+    expiresAt: Date;
+
+    @Column({type: 'timestamptz', name: 'revoked_at'})
+    revokedAt: Date;
+
+    @Column('uuid', {name: 'replaced_by', nullable: true})
+    replacedBy: string | null;
+
+    @Column({name: 'user_agent', type: 'varchar', length: 255, nullable: true})
+    userAgent: string | null;
+
+    @CreateDateColumn({name: 'created_at'})
+    createdAt: Date;
+
+    @UpdateDateColumn({ name: 'updated_at' })
+    updatedAt: Date;
+}
