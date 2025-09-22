@@ -15,13 +15,13 @@ export class AuthController {
     @UseGuards(LocalAuthGuard)
     @Post('login')
     login(@Request() req:any ): any {
-        return this.authService.login(req.user);
+        return this.authService.login(req.user, {ua: 'windos'});
     }
 
     @UseGuards(RefreshJwtAuthGuard)
     @Post('refresh')
     refreshToken(@Request() req) {
-        return this.authService.refreshToken(req.user);
+        return this.authService.refreshToken(req.user, {ua: 'windos'});
     }
 
     @UseGuards(JwtAuthGuard)

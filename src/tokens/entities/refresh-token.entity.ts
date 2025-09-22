@@ -1,7 +1,8 @@
 import { User } from "src/users/entities/user.entity";
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from "typeorm";
 
 @Entity({name: 'refresh_tokens'})
+@Unique(['userId', 'userAgent'])
 export class RefreshToken {
     @PrimaryGeneratedColumn('uuid')
     id: string; // jti
@@ -25,8 +26,8 @@ export class RefreshToken {
     @Column('uuid', {name: 'replaced_by', nullable: true})
     replacedBy: string | null;
 
-    @Column({name: 'user_agent', type: 'varchar', length: 255, nullable: true})
-    userAgent: string | null;
+    @Column({name: 'user_agent', type: 'varchar', length: 255})
+    userAgent: string;
 
     @CreateDateColumn({name: 'created_at'})
     createdAt: Date;

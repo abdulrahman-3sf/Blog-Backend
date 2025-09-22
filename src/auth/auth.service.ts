@@ -42,7 +42,7 @@ export class AuthService {
             userId: user.id,
             plainRefreshToken: refresh_token,
             expiresAt: expiresAt,
-            userAgent: meta?.ua ?? null
+            userAgent: meta?.ua ?? 'unknown'
         })
  
         return {access_token, refresh_token};

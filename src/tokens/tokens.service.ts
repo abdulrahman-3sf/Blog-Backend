@@ -12,7 +12,7 @@ export class TokensService {
         userId: string;
         plainRefreshToken: string;
         expiresAt: Date;
-        userAgent?: string | null;
+        userAgent?: string;
     }) {
         const {userId, plainRefreshToken, expiresAt, userAgent} = opts;
         const hashedRefreshToken = await argon2.hash(plainRefreshToken);
@@ -24,9 +24,9 @@ export class TokensService {
                 expiresAt,
                 revokedAt: null,
                 replacedBy: null,
-                userAgent: userAgent ?? null,
+                userAgent: userAgent ?? 'unknown',
             }, {
-                conflictPaths: ['userId'], // uses the UNIQUE(user_id) index
+                conflictPaths: ['userId', 'userAgent'], // uses the UNIQUE(user_id, userAgent) index
             });
     }
 
