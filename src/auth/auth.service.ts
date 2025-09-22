@@ -71,4 +71,9 @@ export class AuthService {
 
         return user;
     }
+
+    async logout(userId: string) {
+        await this.tokensService.revokeForUser(userId);
+        return { success: true };
+    }
 }

@@ -41,6 +41,10 @@ export class TokensService {
             return {ok: false, reason: 'missing'};
         }
 
+        if (!tokenRow.hashedToken) {
+            return {ok: false, reason: 'missing'};
+        }
+
         if (tokenRow.revokedAt) {
             return {ok: false, reason: 'revoked'};
         }
@@ -56,5 +60,15 @@ export class TokensService {
         }
 
         return {ok: true, tokenRow};
+    }
+
+    async revokeForUser(userId: string) {
+        await this.refreshTokensRepository.update(
+            {userId},
+            {
+                revokedAt: new Date(),
+                hashedToken: null,
+            }
+        );
     }
 }

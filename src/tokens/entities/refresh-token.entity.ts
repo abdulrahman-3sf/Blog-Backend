@@ -13,8 +13,8 @@ export class RefreshToken {
     @JoinColumn({name: 'user_id'})
     user: User;
 
-    @Column({name: 'hashed_token', type: 'varchar', length: 255, unique: true})
-    hashedToken: string;
+    @Column({name: 'hashed_token', type: 'varchar', length: 255, unique: true, nullable: true})
+    hashedToken: string | null;
 
     @Column({type: 'timestamptz', name: 'expires_at'})
     expiresAt: Date;
