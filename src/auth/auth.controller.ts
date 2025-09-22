@@ -14,26 +14,25 @@ export class AuthController {
 
     @UseGuards(LocalAuthGuard)
     @Post('login')
-    login(@Request() req:any ): any {
+    async login(@Request() req) {
         return this.authService.login(req.user, {ua: 'windos'});
     }
 
     @UseGuards(RefreshJwtAuthGuard)
     @Post('refresh')
-    refreshToken(@Request() req) {
+    async refreshToken(@Request() req) {
         return this.authService.refreshToken(req.user, {ua: 'windos'});
     }
 
     @UseGuards(JwtAuthGuard)
     @Get('me')
     async me(@Request() req) {
-        const user = await this.usersService.findById(req.user.id);
-        return user;
+        return this.usersService.findById(req.user.id);
     }
 
     @UseGuards(JwtAuthGuard)
     @Post('logout')
-    logout(@Request() req) {
+    async logout(@Request() req) {
         return this.authService.logout(req.user.id);
     }
 }

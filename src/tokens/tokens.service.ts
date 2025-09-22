@@ -30,34 +30,24 @@ export class TokensService {
             });
     }
 
-    async getByUserId(userId: string) {
-        return this.refreshTokensRepository.findOne({where: {userId}});
+    async getByUserIdAndUA(userId: string, userAgent: string) {
+        return this.refreshTokensRepository.findOne({where: {userId, userAgent}});
     }
 
-    async verifyStoredRefreshToken(userId: string, plainRefreshToken: string) {
-        const tokenRow = await this.getByUserId(userId);
+    async verifyStoredRefreshToken(userId: string, userAgent: string, plainRefreshToken: string) {
+        const tokenRow = await this.getByUserIdAndUA(userId, userAgent);
 
-        if (!tokenRow) {
-            return {ok: false, reason: 'missing'};
-        }
+        if (!tokenRow) return {ok: false, reason: 'missing'};
 
-        if (!tokenRow.hashedToken) {
-            return {ok: false, reason: 'missing'};
-        }
+        if (!tokenRow.hashedToken) return {ok: false, reason: 'missing'};
 
-        if (tokenRow.revokedAt) {
-            return {ok: false, reason: 'revoked'};
-        }
+        if (tokenRow.revokedAt) return {ok: false, reason: 'revoked'};
 
-        if (tokenRow.expiresAt && tokenRow.expiresAt.getTime() < Date.now()) {
-            return {ok: false, reason: 'expired'};
-        }
+        if (tokenRow.expiresAt && tokenRow.expiresAt.getTime() < Date.now()) return {ok: false, reason: 'expired'};
 
         const match = await argon2.verify(tokenRow.hashedToken, plainRefreshToken);
 
-        if (!match) {
-            return {ok: false, reason: 'mismatch'};
-        }
+        if (!match) return {ok: false, reason: 'mismatch'};
 
         return {ok: true, tokenRow};
     }
