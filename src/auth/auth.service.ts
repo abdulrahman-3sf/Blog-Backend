@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { TokensService } from 'src/tokens/tokens.service';
@@ -9,16 +9,16 @@ import { UsersService } from 'src/users/users.service';
 @Injectable()
 export class AuthService {
     constructor(
-        private readonly usersSerivce: UsersService,
+        private readonly usersService: UsersService,
         private readonly tokensService: TokensService,
         private readonly jwtService: JwtService,
         private readonly config: ConfigService,
     ) {}
 
     async validateUser(username: string, password: string) {
-        const user = await this.usersSerivce.findByUsername(username);
+        const user = await this.usersService.findByUsername(username);
 
-        if (user && await this.usersSerivce.checkPassword(password, user.password)) {
+        if (user && await this.usersService.checkPassword(password, user.password)) {
             const {password, ...publicUser} = user;
             return publicUser;
         }
@@ -26,7 +26,7 @@ export class AuthService {
         return null;
     }
 
-    async login(user: User, meta?: { ua?: string }) {
+    async login(user: {id: string, username: string, role: string}, meta?: { ua?: string }) {
         const payload = {sub: user.id, username: user.username, role: user.role}
 
         const access_token = await this.jwtService.signAsync(payload);
@@ -35,8 +35,8 @@ export class AuthService {
             expiresIn: this.config.get<string>('REFRESH_JWT_TOKEN_EXPIRE_TIME') ?? '7d',
         }); 
 
-        const decode = this.jwtService.decode(refresh_token) as {exp: number}; // decode the token and get the expires time
-        const expiresAt = new Date(decode.exp * 1000);
+        const decoded = this.jwtService.decode(refresh_token) as {exp: number}; // decode the token and get the expires time
+        const expiresAt = new Date(decoded.exp * 1000);
 
         await this.tokensService.updateHashedRefreshToken({
             userId: user.id,
@@ -48,11 +48,27 @@ export class AuthService {
         return {access_token, refresh_token};
     }
 
-    async refreshToken(user: User) {
-        const payload = {sub: user.id, username: user.username, role: user.role}
+    async refreshToken(user: {id: string, username: string, role: string}, meta?: { ua?: string }) {
+        return this.login(user, meta);
+    }
 
-        const access_token = await this.jwtService.signAsync(payload);
+    async validateRefreshToken(user: {id: string, username: string, role: string}, refreshToken: string) {
+        const checkToken = await this.tokensService.verifyStoredRefreshToken(user.id, refreshToken);
 
-        return {access_token};
+        if (!checkToken.ok) {
+            switch(checkToken.reason) {
+                case 'missing':
+                    throw new UnauthorizedException('No active refresh session');
+                case 'revoked':
+                    throw new UnauthorizedException('Refresh token revoked');
+                case 'expired':
+                    throw new UnauthorizedException('Refresh token expired');
+                case 'mismatch':
+                default:
+                    throw new UnauthorizedException('Invalid refresh token');
+            }
+        }
+
+        return user;
     }
 }
