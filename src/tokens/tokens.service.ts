@@ -61,4 +61,14 @@ export class TokensService {
             }
         );
     }
+
+    async revokeForUserAllDevices(userId: string) {
+        await this.refreshTokensRepository.update(
+            {userId, revokedAt: undefined},
+            {
+                revokedAt: new Date(),
+                hashedToken: null,
+            }
+        );
+    }
 }

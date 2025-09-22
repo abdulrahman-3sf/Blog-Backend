@@ -23,6 +23,7 @@ export class RefreshJwtStrategy extends PassportStrategy(Strategy, 'refresh-jwt'
     async validate(req: Request, payload) {
         // const refreshToken = req.get('authorization')?.replace('Bearer', '').trim() ?? '';
         const refreshToken = ExtractJwt.fromAuthHeaderAsBearerToken()(req) ?? '';
+        const userAgent = (req.headers['user-agent'] as string) || 'unknown';
 
         const user = {
             id: payload.sub,
@@ -30,6 +31,6 @@ export class RefreshJwtStrategy extends PassportStrategy(Strategy, 'refresh-jwt'
             role: payload.role,
         }
 
-        return this.authService.validateRefreshToken(user, refreshToken);
+        return this.authService.validateRefreshToken(user, refreshToken, userAgent);
     }
 }

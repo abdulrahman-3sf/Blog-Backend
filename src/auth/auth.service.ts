@@ -51,8 +51,8 @@ export class AuthService {
         return this.login(user, meta);
     }
 
-    async validateRefreshToken(user: {id: string, username: string, role: string}, refreshToken: string) {
-        const checkToken = await this.tokensService.verifyStoredRefreshToken(user.id, refreshToken);
+    async validateRefreshToken(user: {id: string, username: string, role: string}, refreshToken: string, userAgent: string) {
+        const checkToken = await this.tokensService.verifyStoredRefreshToken(user.id, userAgent || 'unknown', refreshToken);
 
         if (!checkToken.ok) {
             switch(checkToken.reason) {
@@ -71,8 +71,13 @@ export class AuthService {
         return user;
     }
 
-    async logout(userId: string) {
-        await this.tokensService.revokeForUser(userId);
+    async logout(userId: string, userAgent: string) {
+        await this.tokensService.revokeForUser(userId, userAgent || 'unknown');
+        return { success: true };
+    }
+
+    async logoutAll(userId: string) {
+        await this.tokensService.revokeForUserAllDevices(userId);
         return { success: true };
     }
 }

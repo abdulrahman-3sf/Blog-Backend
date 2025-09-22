@@ -21,7 +21,7 @@ export class AuthController {
     @UseGuards(RefreshJwtAuthGuard)
     @Post('refresh')
     async refreshToken(@Request() req) {
-        return this.authService.refreshToken(req.user, {ua: 'windos'});
+        return this.authService.refreshToken(req.user, {ua: req.headers['user-agent'] as string});
     }
 
     @UseGuards(JwtAuthGuard)
@@ -33,6 +33,12 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     @Post('logout')
     async logout(@Request() req) {
-        return this.authService.logout(req.user.id);
+        return this.authService.logout(req.user.id, req.headers['user-agent'] as string);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('logout-all')
+    async logoutAll(@Request() req) {
+        return this.authService.logoutAll(req.user.id);
     }
 }
