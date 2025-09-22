@@ -7,6 +7,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { PostsModule } from './posts/posts.module';
 import { CommentsModule } from './comments/comments.module';
+import { TokensModule } from './tokens/tokens.module';
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import { CommentsModule } from './comments/comments.module';
         autoLoadEntities: true,
         synchronize: false,
       }),
-    }), UsersModule, AuthModule, PostsModule, CommentsModule,
+    }), UsersModule, AuthModule, PostsModule, CommentsModule, TokensModule,
   ],
   // controllers: [AppController],
   // providers: [AppService],

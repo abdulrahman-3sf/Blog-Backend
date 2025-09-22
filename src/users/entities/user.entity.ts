@@ -1,4 +1,4 @@
-import { RefreshToken } from "src/auth/guards/entities/refresh-token.entity";
+import { RefreshToken } from "src/tokens/entities/refresh-token.entity";
 import { Comment } from "src/comments/entities/comment.entity";
 import { Post } from "src/posts/entities/post.entity";
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";

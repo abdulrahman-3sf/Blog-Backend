@@ -19,8 +19,8 @@ export class RefreshToken {
     @Column({type: 'timestamptz', name: 'expires_at'})
     expiresAt: Date;
 
-    @Column({type: 'timestamptz', name: 'revoked_at'})
-    revokedAt: Date;
+    @Column({type: 'timestamptz', name: 'revoked_at', nullable: true})
+    revokedAt: Date | null;
 
     @Column('uuid', {name: 'replaced_by', nullable: true})
     replacedBy: string | null;
