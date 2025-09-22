@@ -52,9 +52,9 @@ export class TokensService {
         return {ok: true, tokenRow};
     }
 
-    async revokeForUser(userId: string) {
+    async revokeForUser(userId: string, userAgent: string) {
         await this.refreshTokensRepository.update(
-            {userId},
+            {userId, userAgent},
             {
                 revokedAt: new Date(),
                 hashedToken: null,
