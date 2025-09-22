@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RefreshToken } from './entities/refresh-token.entity';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import * as argon2 from "argon2"; // its better for hash long text like tokens and have new algorithms for hashing
 
 @Injectable()
@@ -64,7 +64,7 @@ export class TokensService {
 
     async revokeForUserAllDevices(userId: string) {
         await this.refreshTokensRepository.update(
-            {userId, revokedAt: undefined},
+            {userId, revokedAt: IsNull()},
             {
                 revokedAt: new Date(),
                 hashedToken: null,

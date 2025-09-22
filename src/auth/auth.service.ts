@@ -55,6 +55,10 @@ export class AuthService {
         const checkToken = await this.tokensService.verifyStoredRefreshToken(user.id, userAgent || 'unknown', refreshToken);
 
         if (!checkToken.ok) {
+            if (checkToken.reason === 'mismatch') {
+                await this.tokensService.revokeForUserAllDevices(user.id);
+            }
+
             switch(checkToken.reason) {
                 case 'missing':
                     throw new UnauthorizedException('No active refresh session');

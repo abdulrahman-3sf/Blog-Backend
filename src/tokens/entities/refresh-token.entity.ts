@@ -14,7 +14,7 @@ export class RefreshToken {
     @JoinColumn({name: 'user_id'})
     user: User;
 
-    @Column({name: 'hashed_token', type: 'varchar', length: 255, unique: true, nullable: true})
+    @Column({name: 'hashed_token', type: 'text', unique: true, nullable: true})
     hashedToken: string | null;
 
     @Column({type: 'timestamptz', name: 'expires_at'})
@@ -28,6 +28,9 @@ export class RefreshToken {
 
     @Column({name: 'user_agent', type: 'varchar', length: 255})
     userAgent: string;
+
+    @Column({name: 'last_used_at', type: 'timestamptz', nullable: true})
+    lastUsedAt: Date | null;
 
     @CreateDateColumn({name: 'created_at'})
     createdAt: Date;

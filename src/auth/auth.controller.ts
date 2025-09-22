@@ -15,13 +15,13 @@ export class AuthController {
     @UseGuards(LocalAuthGuard)
     @Post('login')
     async login(@Request() req) {
-        return this.authService.login(req.user, {ua: 'windos'});
+        return this.authService.login(req.user, {ua: req.headers['user-agent'] as string || 'unknown'});
     }
 
     @UseGuards(RefreshJwtAuthGuard)
     @Post('refresh')
     async refreshToken(@Request() req) {
-        return this.authService.refreshToken(req.user, {ua: req.headers['user-agent'] as string});
+        return this.authService.refreshToken(req.user, {ua: req.headers['user-agent'] as string || 'unknown'});
     }
 
     @UseGuards(JwtAuthGuard)
