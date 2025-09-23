@@ -59,4 +59,14 @@ export class UsersService {
     async findByEmail(email:string) {
         return this.repo.findOne({ where: { email: email.toLowerCase().trim() } })
     }
+
+    async delete(id: string) {
+        const user = await this.repo.findOne({ where: { id }});        
+        
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        await this.repo.remove(user);
+    }
 }
