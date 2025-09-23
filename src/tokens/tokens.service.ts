@@ -4,6 +4,10 @@ import { RefreshToken } from './entities/refresh-token.entity';
 import { IsNull, Repository } from 'typeorm';
 import * as argon2 from "argon2"; // its better for hash long text like tokens and have new algorithms for hashing
 
+// consider we get it from .env
+const DEFAULT_MAX_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000; // 30d
+const DEFAULT_MAX_IDLE_MS = 7 * 24 * 60 * 60 * 1000;      // 7d
+
 @Injectable()
 export class TokensService {
     constructor(@InjectRepository(RefreshToken) private readonly refreshTokensRepository: Repository<RefreshToken>) {}
@@ -25,6 +29,7 @@ export class TokensService {
                 revokedAt: null,
                 replacedBy: null,
                 userAgent: userAgent ?? 'unknown',
+                lastUsedAt: new Date(),
             }, {
                 conflictPaths: ['userId', 'userAgent'], // uses the UNIQUE(user_id, userAgent) index
             });
@@ -36,18 +41,28 @@ export class TokensService {
 
     async verifyStoredRefreshToken(userId: string, userAgent: string, plainRefreshToken: string) {
         const tokenRow = await this.getByUserIdAndUA(userId, userAgent);
-
         if (!tokenRow) return {ok: false, reason: 'missing'};
-
         if (!tokenRow.hashedToken) return {ok: false, reason: 'missing'};
-
         if (tokenRow.revokedAt) return {ok: false, reason: 'revoked'};
-
         if (tokenRow.expiresAt && tokenRow.expiresAt.getTime() < Date.now()) return {ok: false, reason: 'expired'};
 
-        const match = await argon2.verify(tokenRow.hashedToken, plainRefreshToken);
+        const now = Date.now();
 
+        if (tokenRow.createdAt && now > tokenRow.createdAt.getTime() + DEFAULT_MAX_LIFETIME_MS) {
+            this.revokeForUser(userId, userAgent);
+            return {ok: false, reason: 'lifetime_exceeded'};
+        }
+
+        const anchor = tokenRow.lastUsedAt?.getTime() ?? tokenRow.createdAt?.getTime() ?? now;
+        if (now > anchor + DEFAULT_MAX_IDLE_MS) {
+            this.revokeForUser(userId, userAgent);
+            return {ok: false, reason: 'idle_exceeded'};
+        }
+
+        const match = await argon2.verify(tokenRow.hashedToken, plainRefreshToken);
         if (!match) return {ok: false, reason: 'mismatch'};
+
+        await this.refreshTokensRepository.update({userId, userAgent}, {lastUsedAt: new Date()});
 
         return {ok: true, tokenRow};
     }

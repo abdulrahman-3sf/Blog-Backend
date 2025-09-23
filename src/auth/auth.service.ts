@@ -66,6 +66,10 @@ export class AuthService {
                     throw new UnauthorizedException('Refresh token revoked');
                 case 'expired':
                     throw new UnauthorizedException('Refresh token expired');
+                case 'lifetime_exceeded':
+                    throw new UnauthorizedException('Session maximum lifetime exceeded');
+                case 'idle_exceeded':
+                    throw new UnauthorizedException('Session idle timeout exceeded');
                 case 'mismatch':
                 default:
                     throw new UnauthorizedException('Invalid refresh token');
