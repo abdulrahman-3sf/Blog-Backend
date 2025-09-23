@@ -49,13 +49,13 @@ export class TokensService {
         const now = Date.now();
 
         if (tokenRow.createdAt && now > tokenRow.createdAt.getTime() + DEFAULT_MAX_LIFETIME_MS) {
-            this.revokeForUser(userId, userAgent);
+            await this.revokeForUser(userId, userAgent);
             return {ok: false, reason: 'lifetime_exceeded'};
         }
 
         const anchor = tokenRow.lastUsedAt?.getTime() ?? tokenRow.createdAt?.getTime() ?? now;
         if (now > anchor + DEFAULT_MAX_IDLE_MS) {
-            this.revokeForUser(userId, userAgent);
+            await this.revokeForUser(userId, userAgent);
             return {ok: false, reason: 'idle_exceeded'};
         }
 

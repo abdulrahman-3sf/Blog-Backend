@@ -28,7 +28,9 @@ export class AuthService {
     async login(user: {id: string, username: string, role: string}, meta?: { ua?: string }) {
         const payload = {sub: user.id, username: user.username, role: user.role}
 
-        const access_token = await this.jwtService.signAsync(payload);
+        const access_token = await this.jwtService.signAsync(payload, {
+            expiresIn: this.config.get<string>('JWT_TOKEN_EXPIRE_TIME') ?? '1h',
+        });
         const refresh_token = await this.jwtService.signAsync(payload, {
             secret: this.config.get<string>('REFRESH_JWT_SECRET'),
             expiresIn: this.config.get<string>('REFRESH_JWT_TOKEN_EXPIRE_TIME') ?? '7d',
