@@ -10,9 +10,60 @@ import { CommentsModule } from './comments/comments.module';
 import { TokensModule } from './tokens/tokens.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { LoggerModule } from 'nestjs-pino';
 
 @Module({
   imports: [
+    LoggerModule.forRoot({
+      pinoHttp: {
+        level: process.env.LOG_LEVEL ?? 'info',
+        transport: process.env.NODE_ENV === 'production' ? undefined : { target: 'pino-pretty' },
+        redact: {
+          paths: [
+            // Headers
+            'req.headers.authorization',
+            'req.headers.cookie',
+            'req.headers["x-api-key"]',
+            'res.headers["set-cookie"]',
+
+            // Request body (flat and nested)
+            'req.body.password',
+            'req.body.passwordConfirmation',
+            'req.body.currentPassword',
+            'req.body.newPassword',
+            'req.body.token',
+            'req.body.accessToken',
+            'req.body.refreshToken',
+            'req.body.clientSecret',
+            'req.body.secret',
+            'req.body.apiKey',
+            'req.body.recaptcha',
+            'req.body.**.password',
+            'req.body.**.token',
+            'req.body.**.secret',
+            'req.body.**.apiKey',
+
+            // Query/params (common for reset links, OAuth codes, etc.)
+            'req.query.token',
+            'req.query.code',
+            'req.query.state',
+            'req.params.token',
+
+            // If you attach user onto req
+            'req.user.password',
+            'req.user.refreshToken',
+
+            // If you ever log response bodies (avoid if possible)
+            'res.body.**.password',
+            'res.body.**.token',
+            'res.body.**.secret',
+            'res.body.**.apiKey',
+          ],
+          censor: '[REDACTED]',
+          remove: false,
+        },
+      }
+    }),
     ThrottlerModule.forRoot([{ ttl: 60, limit: 30 }]),
     ConfigModule.forRoot({isGlobal: true}), // Loads your .env file and makes values available everywhere.
     TypeOrmModule.forRootAsync({
