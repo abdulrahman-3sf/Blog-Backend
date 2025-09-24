@@ -26,7 +26,7 @@ import { LoggerModule } from 'nestjs-pino';
             'req.headers["x-api-key"]',
             'res.headers["set-cookie"]',
 
-            // Request body (flat and nested)
+            // Body (explicit + single-level wildcards)
             'req.body.password',
             'req.body.passwordConfirmation',
             'req.body.currentPassword',
@@ -38,26 +38,32 @@ import { LoggerModule } from 'nestjs-pino';
             'req.body.secret',
             'req.body.apiKey',
             'req.body.recaptcha',
-            'req.body.**.password',
-            'req.body.**.token',
-            'req.body.**.secret',
-            'req.body.**.apiKey',
 
-            // Query/params (common for reset links, OAuth codes, etc.)
+            // one level nested objects (adjust as you need)
+            'req.body.*.password',
+            'req.body.*.token',
+            'req.body.*.secret',
+            'req.body.*.apiKey',
+
+            // Query/params
             'req.query.token',
             'req.query.code',
             'req.query.state',
             'req.params.token',
 
-            // If you attach user onto req
+            // User attached to req
             'req.user.password',
             'req.user.refreshToken',
 
-            // If you ever log response bodies (avoid if possible)
-            'res.body.**.password',
-            'res.body.**.token',
-            'res.body.**.secret',
-            'res.body.**.apiKey',
+            // If you ever log response bodies (try to avoid)
+            'res.body.password',
+            'res.body.token',
+            'res.body.secret',
+            'res.body.apiKey',
+            'res.body.*.password',
+            'res.body.*.token',
+            'res.body.*.secret',
+            'res.body.*.apiKey',
           ],
           censor: '[REDACTED]',
           remove: false,
