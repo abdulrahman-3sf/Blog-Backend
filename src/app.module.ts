@@ -8,9 +8,12 @@ import { AuthModule } from './auth/auth.module';
 import { PostsModule } from './posts/posts.module';
 import { CommentsModule } from './comments/comments.module';
 import { TokensModule } from './tokens/tokens.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot([{ ttl: 60, limit: 30 }]),
     ConfigModule.forRoot({isGlobal: true}), // Loads your .env file and makes values available everywhere.
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -28,6 +31,6 @@ import { TokensModule } from './tokens/tokens.module';
     }), UsersModule, AuthModule, PostsModule, CommentsModule, TokensModule,
   ],
   // controllers: [AppController],
-  // providers: [AppService],
+  providers: [{provide: APP_GUARD, useClass: ThrottlerGuard}],
 })
 export class AppModule {}

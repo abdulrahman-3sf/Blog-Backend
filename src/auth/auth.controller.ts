@@ -4,6 +4,7 @@ import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { UsersService } from 'src/users/users.service';
 import { RefreshJwtAuthGuard } from './guards/refresh-jwt-auth.guard';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
@@ -12,12 +13,14 @@ export class AuthController {
         private readonly usersService: UsersService,
     ) {}
 
+    @Throttle({ default: { ttl: 60, limit: 10 } })
     @UseGuards(LocalAuthGuard)
     @Post('login')
     async login(@Request() req) {
         return this.authService.login(req.user, {ua: req.headers['user-agent'] as string || 'unknown'});
     }
 
+    @Throttle({ default: { ttl: 60, limit: 10 } })
     @UseGuards(RefreshJwtAuthGuard)
     @Post('refresh')
     async refreshToken(@Request() req) {
