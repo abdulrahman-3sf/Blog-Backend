@@ -1,98 +1,192 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 📝 Blog Backend (NestJS + PostgreSQL)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A production-grade blog backend built with **NestJS**, **TypeORM**, and **PostgreSQL**, designed for learning and real-world practices.  
+Implements secure **JWT authentication**, **refresh tokens**, **RBAC (role-based access control)**, **ownership rules**, **CSRF protection**, and more.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 🚀 Features
 
-## Description
+- **Authentication**
+  - JWT access tokens (short-lived)
+  - Refresh tokens (rotated, stored hashed in DB)
+  - Session limits (absolute + idle timeout)
+  - Login, logout (this device / all devices)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **Security**
+  - Argon2 password hashing
+  - CSRF protection (double-submit cookie pattern)
+  - Rate limiting with Nest Throttler
+  - Helmet for secure headers
+  - Pino structured logging with sensitive data redaction
 
-## Project setup
+- **Users**
+  - Register, login
+  - Roles: `USER`, `ADMIN`
+  - Admin can delete users
 
-```bash
-$ npm install
-```
+- **Posts**
+  - Public list + detail (by slug)
+  - CRUD for authenticated users (author manages own posts, admin can manage all)
 
-## Compile and run the project
+- **Comments**
+  - Public list by post slug
+  - Add comment (auth required)
+  - Delete comment (author/admin)
 
-```bash
-# development
-$ npm run start
+- **Docs & Testing**
+  - **Swagger** UI for API documentation
+  - **Postman collection** provided for manual testing
 
-# watch mode
-$ npm run start:dev
+## 📦 Installation
 
-# production mode
-$ npm run start:prod
-```
-
-## Run tests
+Clone the repository and install dependencies:
 
 ```bash
-# unit tests
-$ npm run test
+git clone https://github.com/abdulrahman-3sf/blog-backend.git
 
-# e2e tests
-$ npm run test:e2e
+cd blog-backend
 
-# test coverage
-$ npm run test:cov
+npm install
 ```
 
-## Deployment
+## ⚙️ Configuration
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Create a `.env` file in the project root:
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+```env
+# Server
+PORT=3000
+NODE_ENV=development
+
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=blog
+DB_USER=postgres
+DB_PASS=postgres
+
+# JWT
+JWT_SECRET=your_jwt_secret
+JWT_TOKEN_EXPIRE_TIME=15m
+
+REFRESH_JWT_SECRET=your_refresh_secret
+REFRESH_JWT_TOKEN_EXPIRE_TIME=7d
+
+# Cookies & CSRF
+REFRESH_COOKIE_NAME=refresh_token
+REFRESH_COOKIE_MAX_AGE_MS=604800000   # 7 days
+CSRF_COOKIE_NAME=csrf_token
+CSRF_HEADER_NAME=x-csrf-token
+COOKIE_SECURE=false
+COOKIE_SAMESITE=lax
+COOKIE_DOMAIN=
+
+# Logger
+LOG_LEVEL=info
+```
+
+## 🗄️ Database
+
+Run migrations:
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm run build
+
+npm run typeorm migration:run
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## ▶️ Running the App
 
-## Resources
+### Development
 
-Check out a few resources that may come in handy when working with NestJS:
+```bash
+npm run start:dev
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### Production
 
-## Support
+```bash
+npm run build
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+npm run start:prod
+```
 
-## Stay in touch
+Server starts on [http://localhost:3000](http://localhost:3000).
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## 📚 API Documentation
 
-## License
+### Swagger UI
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Available at:
+
+```
+http://localhost:3000/api/docs
+```
+
+Use this for exploring endpoints, request bodies, and responses.
+
+### Postman
+
+A **Postman collection JSON** is included (`Blog_API_Full_Test_Suite.postman_collection.json`).  
+Import into Postman → run requests against your local or deployed API.
+
+## 🔑 Authentication Flow
+
+1. **Register** → `POST /users`
+2. **Login** → `POST /auth/login`
+   - Returns `{ access_token }`
+   - Sets `refresh_token` (HttpOnly cookie) + `csrf_token` (readable cookie)
+3. **Use API**
+   - Send `Authorization: Bearer <access_token>` header
+   - For `POST/PUT/PATCH/DELETE`, also send `x-csrf-token: <csrf_token>`
+4. **Refresh** → `POST /auth/refresh` (auto-rotates refresh token)
+5. **Logout** → `POST /auth/logout` (clears session + cookie)
+
+## 🛡️ Security Practices
+
+- Access tokens live **only in memory** (frontend stores, not localStorage).
+- Refresh tokens are **HttpOnly cookies**.
+- CSRF is enforced on state-changing routes.
+- Passwords and refresh tokens are **argon2-hashed** in DB.
+- Structured logs redact sensitive fields (passwords, tokens, cookies).
+
+## 🧪 Testing
+
+- Use Swagger or Postman collection to test all endpoints.
+- Example workflows:
+  - Register → Login → Me → Create Post → Add Comment → Logout.
+  - Admin login → Delete user or post.
+
+## 🌍 Deployment Notes
+
+- **CORS:** allow frontend origin (`CORS_ORIGINS` env).
+- **Cookies:**
+  - Local dev → `COOKIE_SECURE=false`, `COOKIE_SAMESITE=lax`.
+  - Production cross-site (e.g., GH Pages) → `COOKIE_SECURE=true`, `COOKIE_SAMESITE=none`.
+- **DB:** host PostgreSQL in Docker, Railway, Supabase, or managed service.
+- Ensure HTTPS in production (cookies require `Secure`).
+
+## 📂 Project Structure
+
+```
+src/
+  auth/          # authentication & guards
+  common/        # utils, filters, decorators
+  comments/      # comments module
+  posts/         # posts module
+  tokens/        # refresh token store
+  users/         # users module
+  main.ts        # bootstrap
+```
+
+## ✅ Roadmap (done so far)
+
+- [x] Users + roles
+- [x] JWT auth (access + refresh)
+- [x] Logout (device/all)
+- [x] Session limits
+- [x] Posts CRUD + ownership rules
+- [x] Comments CRUD + ownership rules
+- [x] RBAC (admin routes)
+- [x] CSRF protection
+- [x] Swagger docs
+- [x] Postman collection
