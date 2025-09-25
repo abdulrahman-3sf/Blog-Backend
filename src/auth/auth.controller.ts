@@ -1,10 +1,13 @@
-import { Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Request, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { UsersService } from 'src/users/users.service';
 import { RefreshJwtAuthGuard } from './guards/refresh-jwt-auth.guard';
 import { Throttle } from '@nestjs/throttler';
+import express from 'express';
+import { CsrfSkip } from 'src/common/meta/csrf-skip.decorator';
+import { clearRefreshCookie, issueCsrfCookie, setRefreshCookie } from 'src/common/utils/cookies.util';
 
 @Controller('auth')
 export class AuthController {
@@ -15,16 +18,28 @@ export class AuthController {
 
     @Throttle({ default: { ttl: 60, limit: 10 } })
     @UseGuards(LocalAuthGuard)
+    @CsrfSkip()
     @Post('login')
-    async login(@Request() req) {
-        return this.authService.login(req.user, {ua: req.headers['user-agent'] as string || 'unknown'});
+    async login(@Request() req, @Res({passthrough: true}) res: express.Response) {
+        const { access_token, refresh_token } = await this.authService.login(req.user, {ua: req.headers['user-agent'] as string || 'unknown'});
+        setRefreshCookie(res, refresh_token);
+        issueCsrfCookie(res);
+        return { access_token };
     }
 
     @Throttle({ default: { ttl: 60, limit: 10 } })
     @UseGuards(RefreshJwtAuthGuard)
     @Post('refresh')
-    async refreshToken(@Request() req) {
-        return this.authService.refreshToken(req.user, {ua: req.headers['user-agent'] as string || 'unknown'});
+    async refreshToken(@Request() req, @Res({passthrough: true}) res: express.Response) {
+        const name = process.env.REFRESH_COOKIE_NAME ?? 'refresh_token';
+        const refreshToken = req.cookies?.[name];
+        if (!refreshToken) throw new UnauthorizedException('Missing refresh token');
+
+        const { access_token, refresh_token } = await this.authService.refreshToken(req.user, {ua: req.headers['user-agent'] as string || 'unknown'});
+    
+        setRefreshCookie(res, refresh_token);
+
+        return { access_token };
     }
 
     @UseGuards(JwtAuthGuard)
@@ -35,13 +50,17 @@ export class AuthController {
 
     @UseGuards(JwtAuthGuard)
     @Post('logout')
-    async logout(@Request() req) {
-        return this.authService.logout(req.user.id, req.headers['user-agent'] as string);
+    async logout(@Request() req, @Res({passthrough: true}) res: express.Response) {
+        await this.authService.logout(req.user.id, req.headers['user-agent'] as string);
+        clearRefreshCookie(res);
+        return;
     }
 
     @UseGuards(JwtAuthGuard)
     @Post('logout-all')
-    async logoutAll(@Request() req) {
-        return this.authService.logoutAll(req.user.id);
+    async logoutAll(@Request() req, @Res({passthrough: true}) res: express.Response) {
+        await this.authService.logoutAll(req.user.id);
+        clearRefreshCookie(res);
+        return;
     }
 }

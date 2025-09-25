@@ -11,6 +11,7 @@ import { TokensModule } from './tokens/tokens.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
+import { CsrfGuard } from './common/guards/csrf.guard';
 
 @Module({
   imports: [
@@ -88,6 +89,9 @@ import { LoggerModule } from 'nestjs-pino';
     }), UsersModule, AuthModule, PostsModule, CommentsModule, TokensModule,
   ],
   // controllers: [AppController],
-  providers: [{provide: APP_GUARD, useClass: ThrottlerGuard}],
+  providers: [
+    {provide: APP_GUARD, useClass: ThrottlerGuard},
+    {provide: APP_GUARD, useClass: CsrfGuard}
+  ],
 })
 export class AppModule {}
