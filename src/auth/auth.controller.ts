@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Request, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Controller, Get, HttpCode, Post, Request, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -41,6 +41,7 @@ export class AuthController {
     @ApiCookieAuth('refresh-cookie')
     @Throttle({ default: { ttl: 60, limit: 10 } })
     // @UseGuards(RefreshJwtAuthGuard)
+    @HttpCode(200)
     @Post('refresh')
     async refreshToken(@Request() req, @Res({passthrough: true}) res: express.Response) {
         const name = process.env.REFRESH_COOKIE_NAME ?? 'refresh_token';

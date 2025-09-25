@@ -7,6 +7,7 @@ import { Roles } from 'src/auth/decorators/roles.decorator';
 import { UserRole } from './entities/user.entity';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { ApiError } from 'src/common/swagger/responses';
+import { CsrfSkip } from 'src/common/meta/csrf-skip.decorator';
 
 @ApiTags('users')
 @Controller('users')
@@ -27,6 +28,7 @@ export class UsersController {
         },
     })
     @ApiBadRequestResponse({ description: 'Validation failed', type: ApiError })
+    @CsrfSkip()
     @Post()
     register(@Body() createUserDto: CreateUserDto) {
         return this.usersRepo.create(createUserDto);
