@@ -28,7 +28,7 @@ export class AuthController {
     }
 
     @Throttle({ default: { ttl: 60, limit: 10 } })
-    @UseGuards(RefreshJwtAuthGuard)
+    // @UseGuards(RefreshJwtAuthGuard)
     @Post('refresh')
     async refreshToken(@Request() req, @Res({passthrough: true}) res: express.Response) {
         const name = process.env.REFRESH_COOKIE_NAME ?? 'refresh_token';
