@@ -1,0 +1,609 @@
+{
+	"info": {
+		"name": "Blog API – Full Test Suite",
+		"description": "End-to-end tests for Blog API (NestJS). Includes login, refresh (cookie), CSRF header automation, and CRUD for users, posts, comments.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Auth • Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"3sf@example.com\",\n  \"username\": \"3sf\",\n  \"password\": \"superSecret123!!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users"
+							]
+						},
+						"description": "Create a user account"
+					},
+					"response": []
+				},
+				{
+					"name": "Auth • Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Login returns access_token', () => {",
+									"  pm.response.to.have.status(200) || pm.response.to.have.status(201);",
+									"  const json = pm.response.json();",
+									"  pm.expect(json).to.have.property('access_token');",
+									"  pm.collectionVariables.set('accessToken', json.access_token);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"johndoe\",\n  \"password\": \"superSecret123!!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "Sets HTTP-only refresh cookie and returns { access_token }. Saves access_token to collection variable."
+					},
+					"response": []
+				},
+				{
+					"name": "Auth • Me",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/auth/me",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"me"
+							]
+						},
+						"description": "Get current user"
+					},
+					"response": []
+				},
+				{
+					"name": "Auth • Refresh",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Refresh returns new access_token', function(){",
+									"  pm.response.to.have.status(200);",
+									"  var json = pm.response.json();",
+									"  pm.expect(json).to.have.property('access_token');",
+									"  pm.collectionVariables.set('accessToken', json.access_token);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Auto add x-csrf-token for write requests (POST/PUT/PATCH/DELETE)\r",
+									"const isWrite = ['POST','PUT','PATCH','DELETE'].includes(pm.request.method.toUpperCase());\r",
+									"if (isWrite) {\r",
+									"  // IMPORTANT: use the full origin here\r",
+									"  const origin = 'http://localhost:3000';\r",
+									"  const headerName = pm.variables.get('csrfHeaderName') || 'x-csrf-token';\r",
+									"\r",
+									"  pm.cookies.jar().get(origin, 'csrf_token', (err, cookie) => {\r",
+									"    if (!err && cookie && cookie.value) {\r",
+									"      pm.request.headers.upsert({ key: headerName, value: cookie.value });\r",
+									"    }\r",
+									"  });\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-csrf-token",
+								"value": "{{x-csrf-token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/auth/refresh",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"refresh"
+							]
+						},
+						"description": "Uses refresh cookie + csrf header (auto). Returns new { access_token } and rotates cookie."
+					},
+					"response": []
+				},
+				{
+					"name": "Auth • Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "{{csrfHeaderName}}",
+								"value": "{{x-csrf-token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/auth/logout",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"logout"
+							]
+						},
+						"description": "Revokes current session; clears cookie"
+					},
+					"response": []
+				},
+				{
+					"name": "Auth • Logout all",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "{{csrfHeaderName}}",
+								"value": "<auto-from-cookie>"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/auth/logout-all",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"logout-all"
+							]
+						},
+						"description": "Revokes all sessions; clears cookie"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Posts",
+			"item": [
+				{
+					"name": "Posts • List (public)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/posts?page=1&limit=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"posts"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Posts • Get by slug (public)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/posts/my-first-post",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"posts",
+								"my-first-post"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Posts • Create",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "{{csrfHeaderName}}",
+								"value": "{{x-csrf-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Hello\",\n  \"body\": \"Welcome\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/posts",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"posts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Posts • Update",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "{{csrfHeaderName}}",
+								"value": "{{x-csrf-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Hello World 2\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/posts/{{postId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"posts",
+								"{{postId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Posts • Delete",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "{{csrfHeaderName}}",
+								"value": "{{x-csrf-token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/posts/{{postId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"posts",
+								"{{postId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Comments",
+			"item": [
+				{
+					"name": "Comments • List for post (public)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/posts/hello/comments?page=1&limit=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"posts",
+								"hello",
+								"comments"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Comments • Add to post",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "{{csrfHeaderName}}",
+								"value": "{{x-csrf-token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"content\": \"cool article. keep it up!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/posts/hello/comments",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"posts",
+								"hello",
+								"comments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Comments • Delete",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "{{csrfHeaderName}}",
+								"value": "{{x-csrf-token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/comments/{{commentId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"comments",
+								"{{commentId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Users • Get by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users/{{userId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"{{userId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Users • Delete (admin only)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "{{csrfHeaderName}}",
+								"value": "{{x-csrf-token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/users/{{userId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"{{userId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"requests": {},
+				"exec": [
+					"const at = pm.collectionVariables.get('accessToken');",
+					"if (at && !pm.request.headers.has('Authorization')) {",
+					"  pm.request.headers.add({ key: 'Authorization', value: `Bearer ${at}` });",
+					"}",
+					"",
+					"const method = pm.request.method.toUpperCase();",
+					"if (['POST','PUT','PATCH','DELETE'].includes(method)) {",
+					"  const hdrName = 'x-csrf-token'; // must match your CSRF_HEADER_NAME",
+					"",
+					"  const origin = 'http://localhost:3000';",
+					"",
+					"  pm.cookies.jar().get(origin, 'csrf_token', (err, cookie) => {",
+					"    if (!err && cookie && cookie.value) {",
+					"      pm.request.headers.upsert({ key: hdrName, value: cookie.value });",
+					"    }",
+					"  });",
+					"}",
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000"
+		},
+		{
+			"key": "csrfHeaderName",
+			"value": "x-csrf-token"
+		},
+		{
+			"key": "x-csrf-token",
+			"value": ""
+		},
+		{
+			"key": "accessToken",
+			"value": ""
+		},
+		{
+			"key": "postId",
+			"value": "REPLACE_WITH_POST_ID_AFTER_CREATE"
+		},
+		{
+			"key": "commentId",
+			"value": "REPLACE_WITH_COMMENT_ID"
+		},
+		{
+			"key": "userId",
+			"value": "REPLACE_WITH_USER_ID"
+		}
+	]
+}
