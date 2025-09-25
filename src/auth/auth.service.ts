@@ -49,8 +49,34 @@ export class AuthService {
         return {access_token, refresh_token};
     }
 
-    async refreshToken(user: {id: string, username: string, role: string}, meta?: { ua?: string }) {
-        return this.login(user, meta);
+    async refreshToken(refreshToken: string, meta?: { ua?: string }) {
+        const ua = meta?.ua ?? 'unknown';
+
+        let payload: { sub: string; username: string; role: string; iat?: number; exp?: number };
+
+        try {
+            payload = await this.jwtService.verifyAsync(refreshToken, {
+                secret: this.config.get<string>('REFRESH_JWT_SECRET'),
+            });
+        } catch (err) {
+            throw new UnauthorizedException('Invalid or expired refresh token');
+        }
+
+        const userId = payload.sub;
+
+        const user = await this.usersService.findById(userId);
+        if (!user) {
+            throw new UnauthorizedException('User no longer exists');
+        }
+
+        await this.validateRefreshToken({id: userId, username: user.username, role: user.role}, refreshToken, ua);
+
+        const { access_token, refresh_token } = await this.login(
+            {id: user.id, username: user.username, role: user.role},
+            { ua },
+        );
+
+        return { access_token, refresh_token };
     }
 
     async validateRefreshToken(user: {id: string, username: string, role: string}, refreshToken: string, userAgent: string) {

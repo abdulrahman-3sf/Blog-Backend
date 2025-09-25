@@ -32,10 +32,10 @@ export class AuthController {
     @Post('refresh')
     async refreshToken(@Request() req, @Res({passthrough: true}) res: express.Response) {
         const name = process.env.REFRESH_COOKIE_NAME ?? 'refresh_token';
-        const refreshToken = req.cookies?.[name];
-        if (!refreshToken) throw new UnauthorizedException('Missing refresh token');
+        const rf = req.cookies?.[name];
+        if (!rf) throw new UnauthorizedException('Missing refresh token');
 
-        const { access_token, refresh_token } = await this.authService.refreshToken(req.user, {ua: req.headers['user-agent'] as string || 'unknown'});
+        const { access_token, refresh_token } = await this.authService.refreshToken(rf, {ua: req.headers['user-agent'] as string || 'unknown'});
     
         setRefreshCookie(res, refresh_token);
 
