@@ -12,6 +12,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
 import { CsrfGuard } from './common/guards/csrf.guard';
+import { CategoriesModule } from './categories/categories.module';
 
 @Module({
   imports: [
@@ -86,7 +87,7 @@ import { CsrfGuard } from './common/guards/csrf.guard';
         autoLoadEntities: true,
         synchronize: false,
       }),
-    }), UsersModule, AuthModule, PostsModule, CommentsModule, TokensModule,
+    }), UsersModule, AuthModule, PostsModule, CommentsModule, TokensModule, CategoriesModule,
   ],
   // controllers: [AppController],
   providers: [
