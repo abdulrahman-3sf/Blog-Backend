@@ -1,14 +1,17 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from './entities/category.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { slugifyTitle } from 'src/common/utils/slug.util';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @Injectable()
 export class CategoriesService {
-    constructor(@InjectRepository(Category) private readonly categoryRepository: Repository<Category>) {}
+    constructor(
+        @InjectRepository(Category) private readonly categoryRepository: Repository<Category>,
+        private readonly dataSource: DataSource
+    ) {}
 
     private async generateUniqueSlug(slugifiedText: string): Promise<string> {
         let base = slugifiedText.trim();
@@ -62,5 +65,43 @@ export class CategoriesService {
         }
 
         return this.categoryRepository.save(category);
+    }
+
+    async delete(id: number, opts?: {force?: boolean}): Promise<void> {
+        const category = await this.categoryRepository.findOne({where: { id }});
+
+        if (!category) {
+            throw new NotFoundException('Category not found');
+        }
+
+        const count = await this.dataSource
+        .createQueryBuilder()
+        .from('post_categories', 'pc')
+        .where('pc."categoryId" = :id', {id})
+        .getCount();
+
+        if (count > 0 && !opts?.force) {
+            throw new ConflictException('Category is in use by posts');
+        }
+
+        if (opts?.force) {
+            await this.dataSource.transaction(async (trx) => {
+                await trx
+                .createQueryBuilder()
+                .delete()
+                .from('post_categories')
+                .where('"categoryId" = :id', {id})
+                .execute();
+
+                await trx
+                .createQueryBuilder()
+                .delete()
+                .from('categories')
+                .where('id = :id', {id})
+                .execute();
+            });
+        } else {
+            await this.categoryRepository.delete(id);
+        }
     }
 }
