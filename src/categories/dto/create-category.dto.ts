@@ -10,13 +10,6 @@ export class CreateCategoryDto {
     @MaxLength(80, {message: 'Name must be shorter than 80 characters'})
     name: string;
 
-    @ApiProperty({example: 'tech'})
-    @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
-    @IsNotEmpty({message: 'Slug is required'})
-    @IsString()
-    @MaxLength(100, {message: 'Slug must be shorted than 100 characters'})
-    slug: string;
-
     @ApiProperty({example: 'tech is about ...'})
     @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
     @IsString()

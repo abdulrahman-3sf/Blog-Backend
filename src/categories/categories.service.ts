@@ -9,7 +9,7 @@ import { slugifyTitle } from 'src/common/utils/slug.util';
 export class CategoriesService {
     constructor(@InjectRepository(Category) private readonly categoryRepository: Repository<Category>) {}
 
-    private async genereateUniqueSlug(slugifiedText: string): Promise<string> {
+    private async generateUniqueSlug(slugifiedText: string): Promise<string> {
         let base = slugifiedText.trim();
         let candidate = base;
         let suffix = 2;
@@ -28,10 +28,18 @@ export class CategoriesService {
 
     private async createSlug(text: string): Promise<string> {
         const base = slugifyTitle(text);
-        return await this.genereateUniqueSlug(base);
+        return await this.generateUniqueSlug(base);
     }
 
-    create(createCategoryDto: CreateCategoryDto): Promise<Category> {
-        
+    async create(createCategoryDto: CreateCategoryDto): Promise<Category> {
+        const uniqueSlug = await this.createSlug(createCategoryDto.name);
+
+        const category = this.categoryRepository.create({
+            name: createCategoryDto.name,
+            slug: uniqueSlug,
+            description: createCategoryDto.description
+        });
+
+        return this.categoryRepository.save(category);
     }
 }
