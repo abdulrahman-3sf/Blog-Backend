@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from './entities/category.entity';
 import { Repository } from 'typeorm';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { slugifyTitle } from 'src/common/utils/slug.util';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @Injectable()
 export class CategoriesService {
@@ -39,6 +40,26 @@ export class CategoriesService {
             slug: uniqueSlug,
             description: createCategoryDto.description
         });
+
+        return this.categoryRepository.save(category);
+    }
+
+    async update(id: number, updateCategoryDto: UpdateCategoryDto): Promise<Category> {
+        const category = await this.categoryRepository.findOne({where: { id }});
+
+        if (!category) {
+            throw new NotFoundException('Category not found');
+        }
+        
+        if (updateCategoryDto.name && updateCategoryDto.name !== category.name) {
+            const uniqueSlug = await this.createSlug(updateCategoryDto.name);
+            category.name = updateCategoryDto.name;
+            category.slug = uniqueSlug;
+        }
+
+        if (updateCategoryDto.description) {
+            category.description = updateCategoryDto.description;
+        }
 
         return this.categoryRepository.save(category);
     }

@@ -4,7 +4,7 @@ import { Column, CreateDateColumn, Entity, ManyToMany, PrimaryGeneratedColumn, U
 @Entity({name: 'categories'})
 export class Category {
     @PrimaryGeneratedColumn()
-    id: string;
+    id: number;
 
     @Column({type: 'varchar', length: 80, nullable: false})
     name: string;
