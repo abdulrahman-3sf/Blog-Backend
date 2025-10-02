@@ -1,6 +1,7 @@
+import { Category } from "src/categories/entities/category.entity";
 import { Comment } from "src/comments/entities/comment.entity";
 import { User } from "src/users/entities/user.entity";
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity({name: "posts"})
 export class Post {
@@ -28,6 +29,14 @@ export class Post {
 
     @OneToMany(() => Comment, comment => comment.post)
     comments: Comment[];
+
+    @ManyToMany(() => Category, {eager: false})
+    @JoinTable({
+        name: 'post_categroies',
+        joinColumn: {name: 'postId', referencedColumnName: 'id'},
+        inverseJoinColumn: {name: 'categoryId', referencedColumnName: 'id'}
+    })
+    categories: Category[];
 
     @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;
