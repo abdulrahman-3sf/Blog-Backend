@@ -5,6 +5,7 @@ import { DataSource, Repository } from 'typeorm';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { slugifyTitle } from 'src/common/utils/slug.util';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import e from 'express';
 
 @Injectable()
 export class CategoriesService {
@@ -103,5 +104,29 @@ export class CategoriesService {
         } else {
             await this.categoryRepository.delete(id);
         }
+    }
+
+    async findAll(params?: {withCounts?: boolean}): Promise<Array<Category & {postsCount?: number}>> {
+        const withCounts = !!params?.withCounts;
+
+        if (!withCounts) {
+            return this.categoryRepository.find({
+                order: {createdAt: 'DESC'}
+            });
+        }
+
+        const query = this.categoryRepository
+            .createQueryBuilder('c')
+            .leftJoin('post_categories', 'pc', 'pc."categoryId" = c.id')
+            .addSelect('COUNT(pc."postId")', 'postsCount')
+            .groupBy('c.id')
+            .orderBy('c."created_at"', 'DESC');
+
+        const {entities, raw} = await query.getRawAndEntities();
+
+        return entities.map((entities, i) => ({
+            ...entities,
+            postCount: Number(raw[i].postCount || 0)
+        }));
     }
 }
