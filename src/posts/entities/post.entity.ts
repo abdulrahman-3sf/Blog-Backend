@@ -32,7 +32,7 @@ export class Post {
 
     @ManyToMany(() => Category, {eager: false})
     @JoinTable({
-        name: 'post_categroies',
+        name: 'post_categories',
         joinColumn: {name: 'postId', referencedColumnName: 'id'},
         inverseJoinColumn: {name: 'categoryId', referencedColumnName: 'id'}
     })
