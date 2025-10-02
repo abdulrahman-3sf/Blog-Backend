@@ -129,4 +129,8 @@ export class CategoriesService {
             postCount: Number(raw[i].postCount || 0)
         }));
     }
+
+    async findBySlug(slug: string): Promise<Category | null> {
+        return await this.categoryRepository.findOne({where: {slug}});
+    }
 }
