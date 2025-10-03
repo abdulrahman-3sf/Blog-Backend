@@ -1,7 +1,7 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from './entities/category.entity';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { slugifyTitle } from 'src/common/utils/slug.util';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -132,5 +132,24 @@ export class CategoriesService {
 
     async findBySlug(slug: string): Promise<Category | null> {
         return await this.categoryRepository.findOne({where: {slug}});
+    }
+
+    async existsByIds(ids: number[]): Promise<{allExist: boolean, missing: number[]}> {
+        if (!ids || ids.length === 0) {
+            return {allExist: true, missing: []};
+        }
+
+        const rows = await this.categoryRepository.find({
+            where: {id: In(ids)},
+            select: ['id']
+        });
+
+        const foundIds = rows.map((c) => c.id);
+        const missing = ids.filter((id) => !foundIds.includes(id));
+
+        return {
+            allExist: missing.length === 0,
+            missing
+        };
     }
 }
