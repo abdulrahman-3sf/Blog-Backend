@@ -9,26 +9,26 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @Controller('categories')
 export class CategoriesController {
-    constructor(private readonly categoriesRepository: CategoriesService) {}
+    constructor(private readonly categoriesService: CategoriesService) {}
 
     @Get()
-    async list(@Query('withCounts') withCounts?: string) {
+    list(@Query('withCounts') withCounts?: string) {
         const flag = (withCounts == 'true') || (withCounts == 'yes') || (withCounts == '1');
-        return this.categoriesRepository.findAll({withCounts: flag});
+        return this.categoriesService.findAll({withCounts: flag});
     }
 
     @Post()
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
-    async create(@Body() createCategoryDto: CreateCategoryDto) {
-        return await this.categoriesRepository.create(createCategoryDto);
+    create(@Body() createCategoryDto: CreateCategoryDto) {
+        return this.categoriesService.create(createCategoryDto);
     }
 
     @Patch(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
-    async update(@Param('id', ParseIntPipe) id: number, @Body() updateCategoryDto: UpdateCategoryDto) {
-        return await this.categoriesRepository.update(id, updateCategoryDto);
+    update(@Param('id', ParseIntPipe) id: number, @Body() updateCategoryDto: UpdateCategoryDto) {
+        return this.categoriesService.update(id, updateCategoryDto);
     }
 
     @Delete(':id')
@@ -37,6 +37,6 @@ export class CategoriesController {
     @HttpCode(204)
     async delete(@Param('id', ParseIntPipe) id: number, @Query('force') force?: string) {
         const flag = force == 'true' || force == 'yes' || force == '1';
-        return await this.categoriesRepository.delete(id, {force: flag});
+        await this.categoriesService.delete(id, {force: flag});
     }
 }
