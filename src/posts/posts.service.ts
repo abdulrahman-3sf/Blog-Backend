@@ -135,6 +135,27 @@ export class PostsService {
             post.published = updatePostDto.published;
         }
 
+        const uniqueIds = [...new Set(updatePostDto.categoryIds)];
+
+        await this.dataSource.transaction(async (manager) => {
+            await manager
+                .createQueryBuilder()
+                .delete()
+                .from('post_categories')
+                .where('"postId" = :postId', { postId })
+                .execute();
+
+            if (uniqueIds.length > 0) {
+                await manager
+                    .createQueryBuilder()
+                    .insert()
+                    .into('post_categories')
+                    .values(uniqueIds.map((categoryId) => ({ postId, categoryId })))
+                    .orIgnore()
+                    .execute();
+            }
+        });
+
         return this.postsRepository.save(post);
     }
 
