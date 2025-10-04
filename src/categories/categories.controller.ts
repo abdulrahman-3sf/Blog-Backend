@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -29,5 +29,14 @@ export class CategoriesController {
     @Roles(UserRole.ADMIN)
     async update(@Param('id', ParseIntPipe) id: number, @Body() updateCategoryDto: UpdateCategoryDto) {
         return await this.categoriesRepository.update(id, updateCategoryDto);
+    }
+
+    @Delete(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.ADMIN)
+    @HttpCode(204)
+    async delete(@Param('id', ParseIntPipe) id: number, @Query('force') force?: string) {
+        const flag = force == 'true' || force == 'yes' || force == '1';
+        return await this.categoriesRepository.delete(id, {force: flag});
     }
 }
