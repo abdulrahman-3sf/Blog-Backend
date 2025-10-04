@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsNotEmpty, IsString, MaxLength } from "class-validator";
+import { IsArray, IsInt, IsNotEmpty, IsOptional, IsString, MaxLength } from "class-validator";
 
 export class CreatePostDto {
     @ApiProperty({ example: 'My first post' })
@@ -14,4 +14,9 @@ export class CreatePostDto {
     @IsNotEmpty({ message: 'Body is required' })
     @IsString()
     body: string;
+
+    @IsOptional()
+    @IsArray()
+    @IsInt({each: true})
+    categoryIds?: number[];
 }

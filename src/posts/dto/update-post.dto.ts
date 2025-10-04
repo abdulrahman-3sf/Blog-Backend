@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsBoolean, IsNotEmpty, IsOptional, IsString, MaxLength } from "class-validator";
+import { IsArray, IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, MaxLength } from "class-validator";
 
 export class UpdatePostDto {
     @ApiProperty({ example: 'My first post' })
@@ -22,4 +22,9 @@ export class UpdatePostDto {
     @IsOptional()
     @IsBoolean()
     published?: boolean;
+
+    @IsOptional()
+    @IsArray()
+    @IsInt({each: true})
+    categoryIds?: number[];
 }

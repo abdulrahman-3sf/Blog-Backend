@@ -1,10 +1,11 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Post } from './entities/post.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { CreatePostDto } from './dto/create-post.dto';
 import { slugifyTitle } from 'src/common/utils/slug.util';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { CategoriesService } from 'src/categories/categories.service';
 
 type Actor = {
     id: string,
@@ -13,7 +14,11 @@ type Actor = {
 
 @Injectable()
 export class PostsService {
-    constructor(@InjectRepository(Post) private readonly postsRepository: Repository<Post>) {}
+    constructor(
+        @InjectRepository(Post) private readonly postsRepository: Repository<Post>,
+        private readonly categoriesService: CategoriesService,
+        private readonly dataSource: DataSource
+    ) {}
 
     private async generateUniqueSlug(slugifiedTitle: string): Promise<string> {
         let base = slugifiedTitle.trim();
@@ -61,17 +66,43 @@ export class PostsService {
             throw new BadRequestException('Title/Body should not be empty!');
         }
 
-        const uniqueSlug = await this.createSlug(createPostDto.title);
+        return this.dataSource.transaction(async (manager) => {
+            const uniqueSlug = await this.createSlug(createPostDto.title);
 
-        const post = this.postsRepository.create({
-            title: createPostDto.title,
-            body: createPostDto.body,
-            slug: uniqueSlug,
-            authorId: authorId,
-            published: false
-        });
+            const post = manager.create(Post, {
+                title: createPostDto.title,
+                body: createPostDto.body,
+                slug: uniqueSlug,
+                authorId: authorId,
+                published: false
+            });
 
-        return this.postsRepository.save(post);
+            const saved = await manager.save(post);
+
+            const inComingIds = createPostDto.categoryIds ?? [];
+            const uniqueIds = [...new Set(inComingIds)];
+
+            if (uniqueIds.length) {
+                const {allExist, missing} = await this.categoriesService.existsByIds(uniqueIds);
+                
+                if (!allExist) {
+                    throw new BadRequestException({
+                        message: 'Some categories not found',
+                        missingIds: missing,
+                    });
+                }
+
+                await manager
+                    .createQueryBuilder()
+                    .insert()
+                    .into('post_categories')
+                    .values(uniqueIds.map(categoryId => ({postId: saved.id, categoryId})))
+                    .orIgnore()
+                    .execute();
+            }
+
+            return saved;
+        })
     }
 
     async update(postId: string, updatePostDto: UpdatePostDto, actor: Actor): Promise<Post> {
