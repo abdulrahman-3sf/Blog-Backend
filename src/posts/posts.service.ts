@@ -135,7 +135,8 @@ export class PostsService {
             post.published = updatePostDto.published;
         }
 
-        const uniqueIds = [...new Set(updatePostDto.categoryIds)];
+        const incoming = updatePostDto.categoryIds ?? [];
+        const uniqueIds = [...new Set(incoming)];
 
         await this.dataSource.transaction(async (manager) => {
             await manager
