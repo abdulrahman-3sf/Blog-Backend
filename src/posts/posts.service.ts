@@ -169,23 +169,40 @@ export class PostsService {
         return post;
     }
 
-    async findPublic(page: number = 1, limit: number = 10): Promise<{
+    async findPublic(page: number = 1, limit: number = 10, category?: string): Promise<{
         items: Post[];
         meta: {page: number, limit: number, total: number};
     }> {
         const { pageSafe, limitSafe } = this.normalizePagination(page, limit);
         
-        const [items, total] = await this.postsRepository.findAndCount({
-            where : {published: true},
-            order: {createdAt: 'DESC'},
-            take: limitSafe,
-            skip: (pageSafe - 1) * limitSafe
-        });
+        if (!category) {
+            const [items, total] = await this.postsRepository.findAndCount({
+                where : {published: true},
+                order: {createdAt: 'DESC'},
+                take: limitSafe,
+                skip: (pageSafe - 1) * limitSafe
+            });
 
-        return {
-            items,
-            meta: {page: pageSafe, limit: limitSafe, total}
-        };
+            return {
+                items,
+                meta: {page: pageSafe, limit: limitSafe, total}
+            };
+        }
+
+        const qb = this.postsRepository
+            .createQueryBuilder('post')
+            .distinct(true)
+            .where('post.published = :pub', {pub: true})
+            .innerJoin('post_categories', 'pc', 'pc."postId" = post.id')
+            .innerJoin('categories', 'c', 'c.id = pc."categoryId" AND c.slug = :slug', {slug: category})
+            .orderBy('post.createdAt', 'DESC')
+            .skip((pageSafe - 1) * limitSafe)
+            .take(limitSafe);
+        
+        console.log(qb.getSql(), qb.getParameters());
+
+        const [items, total] = await qb.getManyAndCount();
+        return { items, meta: {page: pageSafe, limit: limitSafe, total}};
     }
 
     async delete(postId: string, actor: Actor): Promise<void> {

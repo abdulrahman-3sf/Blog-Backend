@@ -63,8 +63,8 @@ export class PostsController {
     })
     @ApiPaginationQueries()
     @Get()
-    list(@Query('page') page?: string, @Query('limit') limit?: string) {
-        return this.postsRepo.findPublic(Number(page), Number(limit));
+    list(@Query('page') page?: string, @Query('limit') limit?: string, @Query('category') category?: string) {
+        return this.postsRepo.findPublic(Number(page), Number(limit), category);
     }
 
     @ApiBearerAuth('access-token')

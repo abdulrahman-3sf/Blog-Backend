@@ -5,7 +5,6 @@ import { DataSource, In, Repository } from 'typeorm';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { slugifyTitle } from 'src/common/utils/slug.util';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import e from 'express';
 
 @Injectable()
 export class CategoriesService {
